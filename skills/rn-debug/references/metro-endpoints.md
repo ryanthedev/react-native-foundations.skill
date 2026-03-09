@@ -18,6 +18,7 @@ Metro port is resolved in this priority order:
 | `/json/list` | GET | List debuggable CDP WebSocket targets |
 | `/index.bundle?platform=ios&dev=true` | GET | Build JS bundle |
 | `/symbolicate` | POST | Symbolicate stack trace |
+| `/hot` | WebSocket | HMR event stream |
 
 ---
 
@@ -135,3 +136,30 @@ The WebSocket uses the standard Chrome DevTools Protocol (CDP). Messages are JSO
 ```
 
 This is the same protocol used by Chrome DevTools -- any CDP reference documentation applies.
+
+---
+
+## HMR WebSocket
+
+The `/hot` endpoint is a WebSocket used by Metro's Hot Module Replacement system. Unlike the CDP WebSocket (discovered via /json/list), this connects directly.
+
+**Connection URL:** `ws://localhost:PORT/hot`
+
+**Protocol:**
+
+1. Client sends a register message after connecting:
+   ```json
+   {"type":"register-entrypoints","entryPoints":["index"]}
+   ```
+2. Server streams JSON messages with a `type` field:
+   - `update-start` -- bundle rebuild beginning
+   - `update` -- module(s) changed (body contains module info)
+   - `update-done` -- bundle rebuild complete
+   - `error` -- build error occurred (body contains error details)
+
+**Note:** This is a Metro-internal protocol. The message format may vary across Metro versions. `hmr.sh` handles unexpected message shapes gracefully.
+
+**Example usage:**
+```bash
+hmr.sh monitor --timeout 30
+```

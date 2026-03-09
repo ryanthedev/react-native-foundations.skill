@@ -21,7 +21,7 @@ Always dispatch a subagent for streaming and tree operations.
 
 - Metro bundler must be running for CDP features (console via CDP, eval, tree, network)
 - `logs.sh` works without Metro (OS-level log capture)
-- Node 22+ required for `cdp-bridge.js` only
+- Node 22+ required for `cdp-bridge.js` and `hmr.sh` (native WebSocket)
 - See `${CLAUDE_SKILL_DIR}/references/metro-endpoints.md` for Metro HTTP API details
 
 ## Scripts
@@ -33,6 +33,7 @@ All shared scripts live at `${CLAUDE_SKILL_DIR}/../_shared/scripts/`. Run them w
 | `metro.sh` | Metro health checks, bundle validation, stack symbolication |
 | `logs.sh` | OS-level JS console log capture (iOS and Android) |
 | `cdp-bridge.js` | CDP WebSocket bridge: console, eval, tree, network |
+| `hmr.sh` | HMR WebSocket event monitor |
 
 ## Routing Table
 
@@ -43,6 +44,7 @@ All shared scripts live at `${CLAUDE_SKILL_DIR}/../_shared/scripts/`. Run them w
 | Evaluate JS expression | `cdp-bridge.js eval "expr"` | No |
 | Inspect React tree | `cdp-bridge.js tree` | Yes |
 | Monitor network | `cdp-bridge.js network` | Yes |
+| Monitor HMR | `hmr.sh monitor` | Yes (streaming) |
 | Check bundle health | `metro.sh bundle-check` | No |
 | Symbolicate stack | `metro.sh symbolicate` | No |
 
@@ -157,6 +159,27 @@ Dispatch Agent:
     4. Return a concise text summary.
 ```
 
+### 5. HMR Monitor
+
+**When:** "HMR updates", "hot reload events", "module changes", "hot module replacement"
+
+```
+Dispatch Agent:
+  subagent_type: general-purpose
+  model: haiku
+  description: "rn-debug: monitor HMR update events"
+  prompt: |
+    1. Run: ${CLAUDE_SKILL_DIR}/../_shared/scripts/hmr.sh monitor --timeout 30
+       This streams HMR events as NDJSON to stdout.
+    2. Parse the NDJSON output.
+    3. Summarize:
+       - Total update count
+       - Modules updated (list file paths)
+       - Any errors reported
+       - Timeline of update-start / update-done cycles
+    4. Return a concise text summary.
+```
+
 ---
 
 ## Tips
@@ -175,3 +198,4 @@ Dispatch Agent:
 | Console log stream | ~1-50 KB | NEVER -- subagent only |
 | React component tree | ~10-100 KB | NEVER -- subagent only |
 | Network request log | ~5-50 KB | NEVER -- subagent only |
+| HMR event stream | ~1-10 KB | NEVER -- subagent only |
