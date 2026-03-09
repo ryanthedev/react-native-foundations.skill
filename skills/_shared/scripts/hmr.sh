@@ -54,20 +54,45 @@ cmd_monitor() {
         exit 1
     fi
 
+    # Detect entry point and platform via metro.sh (single source of truth)
+    local SCRIPT_DIR
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local ENTRY
+    ENTRY=$("$SCRIPT_DIR/metro.sh" detect-entry)
+    local PLATFORM="ios"
+    if ! xcrun simctl list devices booted 2>/dev/null | grep -q "Booted"; then
+        if command -v adb >/dev/null 2>&1 && adb devices 2>/dev/null | grep -q "device$"; then
+            PLATFORM="android"
+        fi
+    fi
+
     # Run inline Node script to connect to HMR WebSocket and stream NDJSON
-    node - "$PORT" "$TIMEOUT" <<'NODESCRIPT'
+    node - "$PORT" "$TIMEOUT" "$ENTRY" "$PLATFORM" <<'NODESCRIPT'
 "use strict";
 
 const port = process.argv[2];
 const timeoutSec = process.argv[3] ? parseInt(process.argv[3], 10) : 0;
+const entryPoint = process.argv[4] || "index";
+const platform = process.argv[5] || "ios";
+
+// Metro's HmrServer expects entry points as bundle URLs, not bare module names.
+// The URL params must match how the app's bundle was originally built so Metro finds
+// the existing graph. Expo adds lazy=true and unstable_transformProfile=hermes-stable.
+const bundleUrl = `http://localhost:${port}/${entryPoint}.bundle?platform=${platform}&dev=true&minify=false&lazy=true&unstable_transformProfile=hermes-stable`;
 
 const ws = new WebSocket(`ws://localhost:${port}/hot`);
 
-ws.addEventListener("open", () => {
+ws.addEventListener("open", async () => {
+    // Ensure the bundle graph exists -- Metro HMR only tracks already-built graphs.
+    // A quick fetch builds it if needed (no-op if already cached).
+    try {
+        await fetch(bundleUrl);
+    } catch {}
+
     // Register as an entrypoint client to receive HMR updates
     ws.send(JSON.stringify({
         type: "register-entrypoints",
-        entryPoints: ["index"]
+        entryPoints: [bundleUrl]
     }));
 });
 
@@ -97,6 +122,8 @@ ws.addEventListener("message", (event) => {
         const body = msg.body || {};
         const errors = body.errors || [];
         process.stdout.write(JSON.stringify({ type, errors, timestamp }) + "\n");
+    } else if (type === "bundle-registered") {
+        process.stdout.write(JSON.stringify({ type, timestamp }) + "\n");
     }
     // Unknown message types are silently skipped
 });

@@ -39,7 +39,16 @@ async function discoverWebSocketUrl(port) {
         throw new Error("No debuggable targets found from Metro");
     }
 
-    const wsUrl = targets[0].webSocketDebuggerUrl;
+    // Select target by capability priority:
+    // 1. reactNative.capabilities.nativePageReloads === true (Expo/new arch)
+    // 2. Title includes "Bridgeless" (new architecture fallback)
+    // 3. First target (vanilla RN single-target case)
+    const target =
+        targets.find((t) => t.reactNative?.capabilities?.nativePageReloads === true) ||
+        targets.find((t) => t.title && t.title.includes("Bridgeless")) ||
+        targets[0];
+
+    const wsUrl = target.webSocketDebuggerUrl;
     if (!wsUrl) {
         throw new Error("Target missing webSocketDebuggerUrl");
     }
@@ -206,13 +215,23 @@ async function modeTree(client, args) {
     // Walks stable fiber properties: type.name, type.displayName,
     // memoizedProps, memoizedState, child, sibling.
     const findFilter = args.find ? JSON.stringify(args.find) : "null";
+    const maxDepth = args.depth ? args.depth : "null";
     const walkerExpression = `
 (function() {
+    var maxDepth = ${maxDepth};
     var hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__;
     if (!hook) return { __noHook: true };
 
-    var roots = hook.getFiberRoots ? Array.from(hook.getFiberRoots(1)) : [];
-    if (roots.length === 0) return { __noHook: true };
+    var roots = [];
+    if (hook.renderers && hook.getFiberRoots) {
+        hook.renderers.forEach(function(renderer, id) {
+            var r = hook.getFiberRoots(id);
+            if (r && r.size > 0) {
+                r.forEach(function(root) { roots.push(root); });
+            }
+        });
+    }
+    if (roots.length === 0) return { __noRoots: true, rendererCount: hook.renderers ? hook.renderers.size : 0 };
 
     var findName = ${findFilter};
     var matches = [];
@@ -222,8 +241,32 @@ async function modeTree(client, args) {
         return fiber.type.displayName || fiber.type.name || null;
     }
 
-    function walkFiber(fiber) {
+    function safeProps(props) {
+        if (!props || typeof props !== 'object') return null;
+        var out = {};
+        var keys = Object.keys(props);
+        for (var i = 0; i < keys.length; i++) {
+            var k = keys[i];
+            if (k === 'children') continue;
+            var v = props[k];
+            var t = typeof v;
+            if (t === 'string' || t === 'number' || t === 'boolean' || v === null) {
+                out[k] = v;
+            } else if (t === 'function') {
+                out[k] = '[function]';
+            } else if (Array.isArray(v)) {
+                out[k] = '[array:' + v.length + ']';
+            } else if (t === 'object') {
+                if (v.$$typeof) { out[k] = '[element]'; }
+                else { try { out[k] = JSON.parse(JSON.stringify(v)); } catch(e) { out[k] = '[object]'; } }
+            }
+        }
+        return Object.keys(out).length > 0 ? out : null;
+    }
+
+    function walkFiber(fiber, depth) {
         if (!fiber) return null;
+        if (maxDepth !== null && depth > maxDepth) return null;
 
         var name = getComponentName(fiber);
         var node = {
@@ -233,16 +276,16 @@ async function modeTree(client, args) {
             children: []
         };
 
-        try { node.props = fiber.memoizedProps; } catch(e) {}
+        try { node.props = safeProps(fiber.memoizedProps); } catch(e) {}
         try {
             if (fiber.memoizedState && fiber.memoizedState.memoizedState !== undefined) {
-                node.state = fiber.memoizedState;
+                try { node.state = JSON.parse(JSON.stringify(fiber.memoizedState.memoizedState)); } catch(e) { node.state = '[complex]'; }
             }
         } catch(e) {}
 
         var child = fiber.child;
         while (child) {
-            var childNode = walkFiber(child);
+            var childNode = walkFiber(child, depth + 1);
             if (childNode) node.children.push(childNode);
             child = child.sibling;
         }
@@ -254,7 +297,7 @@ async function modeTree(client, args) {
         return node;
     }
 
-    var tree = walkFiber(roots[0].current);
+    var tree = walkFiber(roots[0].current, 0);
 
     if (findName) {
         return { find: findName, matches: matches };
@@ -283,6 +326,14 @@ async function modeTree(client, args) {
     if (value && value.__noHook) {
         process.stderr.write(
             "React DevTools hook not found -- ensure app is running in dev mode\n"
+        );
+        client.close();
+        process.exit(1);
+    }
+
+    if (value && value.__noRoots) {
+        process.stderr.write(
+            `No fiber roots found (${value.rendererCount} renderer(s) registered) -- app may not have rendered yet\n`
         );
         client.close();
         process.exit(1);
@@ -332,6 +383,7 @@ function parseArgs() {
         timeout: null,
         expression: null,
         find: null,
+        depth: null,
     };
 
     let i = 0;
@@ -345,6 +397,9 @@ function parseArgs() {
                 break;
             case "--find":
                 args.find = argv[++i];
+                break;
+            case "--depth":
+                args.depth = parseInt(argv[++i], 10);
                 break;
             default:
                 if (argv[i].startsWith("-")) {
@@ -378,7 +433,8 @@ function printUsage() {
         "Options:\n" +
         "  --port <PORT>       Metro port (default: $RCT_METRO_PORT or 8081)\n" +
         "  --timeout <SEC>     Stop after SEC seconds (console/network)\n" +
-        '  --find <name>       Filter tree to component name (tree mode)\n'
+        '  --find <name>       Filter tree to component name (tree mode)\n' +
+        '  --depth <N>         Limit tree traversal depth (tree mode)\n'
     );
     process.exit(1);
 }

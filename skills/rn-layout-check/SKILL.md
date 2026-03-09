@@ -64,7 +64,7 @@ If Metro/Hermes debugger is available, extract actual computed style values from
 Run `${CLAUDE_SKILL_DIR}/../_shared/scripts/cdp-bridge.js eval` with an inline JS expression that:
 
 1. Accesses `__REACT_DEVTOOLS_GLOBAL_HOOK__`
-2. Gets fiber roots from the hook
+2. Iterates `hook.renderers` to find all registered renderer IDs, then calls `hook.getFiberRoots(id)` for each (do NOT hardcode renderer ID 1 — it varies with new architecture)
 3. Walks the fiber tree starting from `root.current`
 4. For each fiber node:
    - Gets the component name (`type.displayName` or `type.name`)

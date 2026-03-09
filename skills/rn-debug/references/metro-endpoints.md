@@ -50,18 +50,30 @@ List debuggable CDP WebSocket targets. Returns a JSON array of targets, each wit
 curl http://localhost:8081/json/list
 ```
 
-**Response:**
+**Response (new architecture / Bridgeless):**
 ```json
 [
   {
-    "id": "1",
-    "description": "com.example.app",
-    "title": "React Native Bridge",
+    "id": "device-1",
+    "title": "com.example.app (iPhone 16e)",
+    "description": "React Native Bridgeless [C++ connection]",
     "type": "node",
-    "webSocketDebuggerUrl": "ws://localhost:8081/inspector/debug?device=0&page=1"
+    "webSocketDebuggerUrl": "ws://localhost:8081/inspector/debug?device=...&page=1",
+    "reactNative": {
+      "capabilities": { "nativePageReloads": true }
+    }
+  },
+  {
+    "id": "device-2",
+    "title": "com.example.app (iPhone 16e)",
+    "description": "UI [C++ connection]",
+    "type": "node",
+    "webSocketDebuggerUrl": "ws://localhost:8081/inspector/debug?device=...&page=2"
   }
 ]
 ```
+
+With new architecture, multiple targets appear. The JS runtime target has `nativePageReloads: true`. The UI thread target cannot execute JS. `cdp-bridge.js` selects the correct target automatically.
 
 **Error (no targets available):**
 ```json
@@ -147,10 +159,11 @@ The `/hot` endpoint is a WebSocket used by Metro's Hot Module Replacement system
 
 **Protocol:**
 
-1. Client sends a register message after connecting:
+1. Client sends a register message after connecting. Entry points must be full bundle URLs (not bare module names):
    ```json
-   {"type":"register-entrypoints","entryPoints":["index"]}
+   {"type":"register-entrypoints","entryPoints":["http://localhost:8081/index.bundle?platform=ios&dev=true&minify=false&lazy=true&unstable_transformProfile=hermes-stable"]}
    ```
+   The URL params must match how the bundle was originally built so Metro finds the existing graph. `hmr.sh` handles this automatically.
 2. Server streams JSON messages with a `type` field:
    - `update-start` -- bundle rebuild beginning
    - `update` -- module(s) changed (body contains module info)

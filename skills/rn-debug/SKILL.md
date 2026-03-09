@@ -17,11 +17,24 @@ Always dispatch a subagent for streaming and tree operations.
 
 ---
 
+## Step 0: Environment Check
+
+Before any debug operation, run the environment check to understand the project setup:
+
+```bash
+${CLAUDE_SKILL_DIR}/../_shared/scripts/metro.sh env
+```
+
+Returns JSON: `{"metro":true,"port":8081,"expo":true,"newArch":true,"entry":"index","platform":"ios"}`
+
+Use this to inform decisions (fallback to logs.sh if Metro is down, skip CDP if Metro isn't running). Run this once per session, not per command.
+
 ## Prerequisites
 
 - Metro bundler must be running for CDP features (console via CDP, eval, tree, network)
 - `logs.sh` works without Metro (OS-level log capture)
 - Node 22+ required for `cdp-bridge.js` and `hmr.sh` (native WebSocket)
+- Works with both vanilla React Native and Expo projects (Expo SDK 54+ tested)
 - See `${CLAUDE_SKILL_DIR}/references/metro-endpoints.md` for Metro HTTP API details
 
 ## Scripts
@@ -42,7 +55,7 @@ All shared scripts live at `${CLAUDE_SKILL_DIR}/../_shared/scripts/`. Run them w
 | Check Metro health | `metro.sh status` | No |
 | View console output | `logs.sh` or `cdp-bridge.js console` | Yes |
 | Evaluate JS expression | `cdp-bridge.js eval "expr"` | No |
-| Inspect React tree | `cdp-bridge.js tree` | Yes |
+| Inspect React tree | `cdp-bridge.js tree [--depth N]` | Yes |
 | Monitor network | `cdp-bridge.js network` | Yes |
 | Monitor HMR | `hmr.sh monitor` | Yes (streaming) |
 | Check bundle health | `metro.sh bundle-check` | No |
@@ -120,13 +133,17 @@ Direct (no subagent -- output is small):
 
 **When:** "React tree", "component tree", "find component"
 
+Use `--find` when looking for a specific component (preferred — returns only matches).
+Use `--depth N` to limit output size for overview (depth 5 is a good starting point).
+Only use full tree (no flags) via subagent — output can be 10-100 KB.
+
 ```
 Dispatch Agent:
   subagent_type: general-purpose
   model: haiku
   description: "rn-debug: inspect React component tree"
   prompt: |
-    1. Run: ${CLAUDE_SKILL_DIR}/../_shared/scripts/cdp-bridge.js tree [--find "ComponentName" if specified]
+    1. Run: ${CLAUDE_SKILL_DIR}/../_shared/scripts/cdp-bridge.js tree [--find "ComponentName" if specified] [--depth 5 for overview]
        This outputs the React component tree as JSON.
     2. Parse the JSON tree.
     3. Summarize:

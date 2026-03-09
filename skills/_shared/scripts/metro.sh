@@ -19,6 +19,8 @@ usage() {
     echo "  targets         List debuggable CDP targets"
     echo "  bundle-check    Check if JS bundle builds successfully"
     echo "  symbolicate     Symbolicate a stack trace from stdin"
+    echo "  detect-entry    Print the JS entry point (index or expo-router entry)"
+    echo "  env             Print environment summary as JSON"
     echo ""
     echo "Options:"
     echo "  --port <PORT>   Metro port (default: \$RCT_METRO_PORT or 8081)"
@@ -57,6 +59,77 @@ cmd_targets() {
     curl -s --connect-timeout 2 --max-time 5 "http://localhost:${PORT}/json/list"
 }
 
+# Detect JS entry point: expo-router > package.json main > "index"
+# Reusable by other scripts: ENTRY=$(metro.sh detect-entry)
+detect_entry() {
+    if [[ -f "package.json" ]] && command -v node >/dev/null 2>&1; then
+        local detected
+        detected=$(node -e "
+            try {
+                const pkg = require('./package.json');
+                const deps = {...(pkg.dependencies||{}), ...(pkg.devDependencies||{})};
+                if (deps['expo-router']) {
+                    console.log('node_modules/expo-router/entry');
+                } else if (pkg.main) {
+                    console.log(pkg.main.replace(/\.[jt]sx?$/, ''));
+                }
+            } catch {}
+        " 2>/dev/null || true)
+        if [[ -n "$detected" ]]; then
+            echo "$detected"
+            return
+        fi
+    fi
+    echo "index"
+}
+
+cmd_detect_entry() {
+    detect_entry
+}
+
+cmd_env() {
+    resolve_port
+
+    local metro="false"
+    if response=$(curl -s --connect-timeout 2 --max-time 5 "http://localhost:${PORT}/status" 2>/dev/null) \
+       && [[ "$response" == *"packager-status:running"* ]]; then
+        metro="true"
+    fi
+
+    local expo="false"
+    local new_arch="false"
+    if command -v node >/dev/null 2>&1 && [[ -f "package.json" ]]; then
+        local project_info
+        project_info=$(node -e "
+            try {
+                const pkg = require('./package.json');
+                const deps = {...(pkg.dependencies||{}), ...(pkg.devDependencies||{})};
+                const expo = !!deps['expo'];
+                let newArch = false;
+                try { const app = require('./app.json'); newArch = !!app.expo?.newArchEnabled; } catch {}
+                console.log(JSON.stringify({expo, newArch}));
+            } catch { console.log('{}'); }
+        " 2>/dev/null || true)
+        if [[ -n "$project_info" ]]; then
+            expo=$(echo "$project_info" | node -e "const d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf8')); console.log(d.expo||false)" 2>/dev/null || echo "false")
+            new_arch=$(echo "$project_info" | node -e "const d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf8')); console.log(d.newArch||false)" 2>/dev/null || echo "false")
+        fi
+    fi
+
+    local entry
+    entry=$(detect_entry)
+
+    local platform="ios"
+    if ! xcrun simctl list devices booted 2>/dev/null | grep -q "Booted"; then
+        if command -v adb >/dev/null 2>&1 && adb devices 2>/dev/null | grep -q "device$"; then
+            platform="android"
+        fi
+    fi
+
+    printf '{"metro":%s,"port":%s,"expo":%s,"newArch":%s,"entry":"%s","platform":"%s"}\n' \
+        "$metro" "$PORT" "$expo" "$new_arch" "$entry" "$platform"
+}
+
 cmd_bundle_check() {
     local PLATFORM="ios"
 
@@ -69,6 +142,9 @@ cmd_bundle_check() {
 
     require_metro_running
 
+    local ENTRY
+    ENTRY=$(detect_entry)
+
     local tmpfile
     tmpfile=$(mktemp)
     trap 'rm -f "$tmpfile"' EXIT
@@ -77,7 +153,7 @@ cmd_bundle_check() {
     http_status=$(curl -s --connect-timeout 5 --max-time 30 \
         --write-out "%{http_code}" \
         --output "$tmpfile" \
-        "http://localhost:${PORT}/index.bundle?platform=${PLATFORM}&dev=true&minify=false")
+        "http://localhost:${PORT}/${ENTRY}.bundle?platform=${PLATFORM}&dev=true&minify=false")
 
     if [[ "$http_status" == "200" ]]; then
         echo "Bundle builds successfully (platform: ${PLATFORM})"
@@ -139,5 +215,7 @@ case "$command" in
     targets)      cmd_targets "${REMAINING_ARGS[@]+"${REMAINING_ARGS[@]}"}" ;;
     bundle-check) cmd_bundle_check "${REMAINING_ARGS[@]+"${REMAINING_ARGS[@]}"}" ;;
     symbolicate)  cmd_symbolicate "${REMAINING_ARGS[@]+"${REMAINING_ARGS[@]}"}" ;;
+    detect-entry) cmd_detect_entry ;;
+    env)          cmd_env ;;
     *)            echo "Error: Unknown command '$command'" >&2; usage ;;
 esac

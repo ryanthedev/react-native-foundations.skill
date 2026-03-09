@@ -46,15 +46,21 @@ ${CLAUDE_SKILL_DIR}/../../refs/react-native-docs/docs/
 
 ## Workflow
 
-### Step 0: Metro Health Check
+### Step 0: Environment + Metro Health Check
 
-Before deep diagnosis, check if the development environment is healthy.
+Before deep diagnosis, get the environment summary and check health.
+
+0. **Get environment context** (run once, reuse throughout):
+   ```bash
+   ${CLAUDE_SKILL_DIR}/../_shared/scripts/metro.sh env
+   ```
+   Returns JSON with `metro`, `expo`, `newArch`, `entry`, `platform`. Use this to inform diagnosis — Expo and vanilla RN have different error patterns.
 
 1. **Check if Metro is running:**
    ```bash
    ${CLAUDE_SKILL_DIR}/../_shared/scripts/metro.sh status
    ```
-   - If Metro is **not running**: note this as a potential root cause. Suggest `npx react-native start`.
+   - If Metro is **not running**: note this as a potential root cause. For Expo projects, suggest `npx expo start`. For vanilla RN, suggest `npx react-native start`.
    - If Metro is **running**: proceed to bundle check.
 
 2. **Check if the JS bundle compiles:**
