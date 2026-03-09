@@ -19,7 +19,9 @@ Always process them in a subagent to protect main context.
 
 ## Error Pattern Database
 
-Read `${CLAUDE_SKILL_DIR}/references/error-patterns.md` for the full pattern catalog (18 patterns covering Metro, build, runtime, and dependency errors).
+Read `${CLAUDE_SKILL_DIR}/references/error-patterns.md` for the full pattern catalog (21 patterns covering Metro, build, runtime, and dependency errors).
+
+Step 0 uses `${CLAUDE_SKILL_DIR}/../_shared/scripts/metro.sh` for live Metro health checks before deep diagnosis.
 
 ## Docs Location
 
@@ -37,11 +39,42 @@ ${CLAUDE_SKILL_DIR}/../../refs/react-native-docs/docs/
 | Error visible on simulator | Simulator screen | **capture** → pattern-match → docs search |
 | Build log failure | Xcode / Gradle output | **log-parse** (subagent if large) → pattern-match |
 | Config / dependency issue | Project files | **config-check** → pattern-match |
+| Metro / environment issue | Any | **Step 0** (metro health) → pattern-match if bundle error |
 | Unknown / unclear | Any | **full-diagnosis** (all steps) |
 
 ---
 
 ## Workflow
+
+### Step 0: Metro Health Check
+
+Before deep diagnosis, check if the development environment is healthy.
+
+1. **Check if Metro is running:**
+   ```bash
+   ${CLAUDE_SKILL_DIR}/../_shared/scripts/metro.sh status
+   ```
+   - If Metro is **not running**: note this as a potential root cause. Suggest `npx react-native start`.
+   - If Metro is **running**: proceed to bundle check.
+
+2. **Check if the JS bundle compiles:**
+   ```bash
+   ${CLAUDE_SKILL_DIR}/../_shared/scripts/metro.sh bundle-check --platform ios
+   ```
+   - If exit code is non-zero (500 response): capture the error body for pattern matching in Step 2.
+   - If bundle builds successfully: Metro environment is healthy, proceed.
+
+3. **Symbolicate raw stack traces (if provided):**
+   If the user provides a raw stack trace, pipe the stack trace JSON to symbolicate before pattern matching:
+   ```bash
+   echo '<stack-trace-json>' | ${CLAUDE_SKILL_DIR}/../_shared/scripts/metro.sh symbolicate
+   ```
+   Use the symbolicated output for pattern matching instead of the raw trace.
+
+```
+If Step 0 finds Metro is down or the bundle fails, this is often the root cause.
+Report it immediately rather than proceeding through all steps.
+```
 
 ### Step 1: Obtain Error Text
 
@@ -168,6 +201,7 @@ Dispatch Agent:
 
 | Item | Size | In Main Context? |
 |------|------|------------------|
+| Metro health check | ~50 chars | YES (small output) |
 | Error pattern DB | ~4 KB | YES (read once) |
 | Simulator screenshot | ~100-300 KB | NEVER — subagent |
 | Build log parsing | ~1-50 KB | Subagent if >100 lines |

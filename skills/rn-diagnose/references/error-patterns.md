@@ -224,3 +224,36 @@ sudo chown -R $(whoami) ios/build/
 - In `Podfile`, comment out or remove `use_flipper!()` for RN 0.73+
 - Ensure `:hermes_enabled` matches in Podfile and `gradle.properties`
 - `pod install --repo-update` after changes
+
+---
+
+## Metro Connectivity Errors
+
+### 19. Metro Not Reachable
+
+**Match:** `Could not connect to development server`, `connection refused`, `ECONNREFUSED`, `Unable to load script`, `Could not connect to the server`
+**Cause:** Metro bundler is not running, crashed, or listening on a different port. App cannot fetch JS bundle.
+**Fix:**
+- Check if Metro is running: `metro.sh status`
+- If not running: `npx react-native start`
+- If running on a different port: check `RCT_METRO_PORT` or pass `--port` to Metro
+- On physical device: ensure Metro host is set correctly (shake menu → Dev Settings → Debug server host)
+
+### 20. Metro Bundle Download Timeout
+
+**Match:** `Could not get BatchedBridge`, `Running.*took too long`, `Bundling failed`, `Network request failed`
+**Cause:** Metro is running but bundle download timed out. Large bundle, slow machine, or incorrect network config.
+**Fix:**
+- Check bundle compiles: `metro.sh bundle-check --platform ios`
+- If bundle compiles but device cannot reach: check same-network connectivity
+- Clear Metro cache: `npx react-native start --reset-cache`
+- For slow builds: ensure Hermes bytecode precompilation is enabled
+
+### 21. Metro WebSocket Disconnected
+
+**Match:** `WebSocket connection.*closed`, `HMR.*disconnected`, `Lost connection to Metro`
+**Cause:** Hot Module Replacement WebSocket lost connection. Metro crashed, network changed, or device went to sleep.
+**Fix:**
+- Reload the app (Cmd+R in simulator, shake menu on device)
+- If Metro crashed: restart with `npx react-native start`
+- Check `metro.sh status` to confirm Metro is alive
