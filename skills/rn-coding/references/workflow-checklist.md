@@ -25,6 +25,9 @@ Step-by-step checklist for writing React Native code. Referenced by rn-coding SK
 - [ ] Suggest: `rn-a11y-audit` for accessibility check
 - [ ] Suggest: `rn-debug` for console error monitoring
 - [ ] If errors: direct to `rn-diagnose`
+- [ ] If red box error: read the stack trace (see callstack-guide.md)
+- [ ] If raw/numeric stack trace: symbolicate with `metro.sh symbolicate`
+- [ ] If error persists after fix: run `rn-diagnose` for pattern-based diagnosis
 
 ## Common Gotchas
 

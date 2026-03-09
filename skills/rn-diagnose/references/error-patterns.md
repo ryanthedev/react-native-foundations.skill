@@ -139,6 +139,8 @@ sdkmanager "platforms;android-34" "build-tools;34.0.0"
 - Check if a native module is properly linked (pod install / rebuild)
 - Verify navigation params exist before accessing
 
+**Callstack hint:** Scan past React internals (`invokeGuardedCallbackImpl`, `performSyncWorkOnRoot`) to find the first frame in your source code. The offending property access is on that line. Check if the variable is initialized before this code path executes.
+
 ### 12. Invariant Violation
 
 **Match:** `Invariant Violation`, `requireNativeComponent`, `TurboModuleRegistry`
@@ -152,6 +154,8 @@ npx react-native run-ios
 cd android && ./gradlew clean && cd ..
 npx react-native run-android
 ```
+
+**Callstack hint:** Look for frames containing `requireNativeComponent` or `TurboModuleRegistry.getEnforcing` -- these indicate which native module failed to load. The component or module name in the error message tells you which library needs pod install or rebuild.
 
 ### 13. VirtualizedList Warnings/Errors
 
@@ -257,3 +261,42 @@ sudo chown -R $(whoami) ios/build/
 - Reload the app (Cmd+R in simulator, shake menu on device)
 - If Metro crashed: restart with `npx react-native start`
 - Check `metro.sh status` to confirm Metro is alive
+
+---
+
+## Runtime Errors (Additional)
+
+### 22. Maximum Call Stack Size Exceeded
+
+**Match:** `Maximum call stack`, `stack size exceeded`, `RangeError`
+**Cause:** Infinite recursion. Common triggers: useEffect without proper dependency array causing render loop, recursive function without base case, setState inside render without condition guard.
+**Fix:**
+- Check useEffect dependency arrays -- missing deps cause infinite loops
+- Add base case to recursive functions
+- Move setState calls into event handlers or effects with proper guards
+- Search stack trace for repeating function name to find the loop
+
+**Callstack hint:** The stack trace will show the same function name repeating many times. That function is the source of the recursion. If it is a React component name, check its render body and useEffect hooks.
+
+### 23. Unhandled Promise Rejection
+
+**Match:** `Unhandled promise rejection`, `Possible Unhandled Promise`, `WARN Possible Unhandled Promise Rejection`
+**Cause:** An async operation threw an error that was not caught. Common with fetch calls, AsyncStorage, native module calls that return promises.
+**Fix:**
+- Wrap async calls in try/catch blocks
+- Add .catch() to promise chains
+- For fetch: handle both network errors and non-OK HTTP responses
+- For React Native: LogBox may suppress the warning but the error persists
+
+**Callstack hint:** The stack trace points to the async function that threw. Look for the first frame in your code -- that is where the uncaught promise originated. The actual error message (before "Unhandled promise rejection") describes what went wrong.
+
+### 24. Cannot Read Properties of null/undefined
+
+**Match:** `Cannot read properties of null`, `Cannot read properties of undefined`, `Cannot read property`, `TypeError: Cannot read`
+**Cause:** Same root cause as pattern 11 (null is not an object) but different error message format from Hermes or V8 engine. Accessing .property on a null/undefined value.
+**Fix:**
+- Same fixes as pattern 11: optional chaining, null checks, verify initialization order
+- Common in navigation: `params?.id` instead of `params.id`
+- Common in API responses: `data?.results` instead of `data.results`
+
+**Callstack hint:** Same as pattern 11. Scan past framework frames to find the first frame in your source code. The property access on that line is the one that failed.

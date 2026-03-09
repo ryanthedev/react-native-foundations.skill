@@ -52,6 +52,14 @@ Suggest verification steps (text suggestions, not tool invocations):
 
 If errors are reported: "Use `rn-diagnose` to diagnose the error"
 
+### When Errors Occur
+
+When you encounter errors during development, these resources help interpret and resolve them:
+
+- Read `${CLAUDE_SKILL_DIR}/references/callstack-guide.md` for how to read React Native stack traces
+- Use `metro.sh symbolicate` for raw/numeric stack traces from crash logs or bundle output
+- Use `rn-diagnose` for automated error diagnosis against 24 known patterns
+
 ---
 
 ## Tips

@@ -19,7 +19,7 @@ Always process them in a subagent to protect main context.
 
 ## Error Pattern Database
 
-Read `${CLAUDE_SKILL_DIR}/references/error-patterns.md` for the full pattern catalog (21 patterns covering Metro, build, runtime, and dependency errors).
+Read `${CLAUDE_SKILL_DIR}/references/error-patterns.md` for the full pattern catalog (24 patterns covering Metro, build, runtime, and dependency errors).
 
 Step 0 uses `${CLAUDE_SKILL_DIR}/../_shared/scripts/metro.sh` for live Metro health checks before deep diagnosis.
 
