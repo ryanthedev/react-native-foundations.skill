@@ -25,17 +25,34 @@ Always dispatch a subagent for streaming and tree operations.
 
 ---
 
-## Step 0: Environment Check
+## Step 0: Pre-Flight Check
 
-Before any debug operation, run the environment check to understand the project setup:
+Before any debug operation, run all three checks to understand what's available. Run once per session, not per command.
 
 ```bash
-${CLAUDE_SKILL_DIR}/../_shared/scripts/metro.sh env
+# 1. Metro running?
+${CLAUDE_SKILL_DIR}/../_shared/scripts/metro.sh status
+
+# 2. Simulator booted?
+xcrun simctl list devices booted
+
+# 3. App connected to Metro? (only if Metro is up)
+${CLAUDE_SKILL_DIR}/../_shared/scripts/metro.sh targets
 ```
 
-Returns JSON: `{"metro":true,"port":8081,"expo":true,"newArch":true,"entry":"index","platform":"ios"}`
+`metro.sh targets` returns a JSON array of debuggable CDP pages. Each entry has `appId`, `title`, and `deviceName`. An empty array `[]` means Metro is running but no app has connected to it.
 
-Use this to inform decisions (fallback to logs.sh if Metro is down, skip CDP if Metro isn't running). Run this once per session, not per command.
+### Pre-Flight Decision Table
+
+| Metro | Simulator | Targets | Action |
+|-------|-----------|---------|--------|
+| Up | Booted | Has entries | Proceed with CDP operations |
+| Up | Booted | Empty `[]` | Tell user: "Metro is running but no app is connected. Open your app in the simulator." |
+| Up | Not booted | — | Tell user: "Metro is running but no simulator is booted." |
+| Down | Booted | — | Fall back to `logs.sh` for console logs. Report "Metro not running" for CDP operations. |
+| Down | Not booted | — | Tell user: "Neither Metro nor a simulator is running." |
+
+**Never return empty results without diagnosing why.** If a CDP operation returns nothing, re-run `metro.sh targets` to check whether the app disconnected mid-session.
 
 ## Prerequisites
 
@@ -73,12 +90,17 @@ All shared scripts live at `${CLAUDE_SKILL_DIR}/../_shared/scripts/`. Run them w
 
 ## Fallback Logic
 
-Before any CDP operation (`eval`, `tree`, `network`, `cdp-bridge.js console`):
+Before any CDP operation (`eval`, `tree`, `network`, `cdp-bridge.js console`), verify the full chain from the Pre-Flight Decision Table. If pre-flight already ran this session, at minimum re-check `metro.sh targets` to confirm the app is still connected.
 
-1. Run `${CLAUDE_SKILL_DIR}/../_shared/scripts/metro.sh status` first
-2. If Metro is **not running**:
-   - **Console logs requested:** Fall back to `logs.sh` (works without Metro via OS-level capture). Note the fallback in output to the user.
-   - **CDP required** (eval, tree, network): Report error: "Metro is not running. Start it with `npx react-native start`." Do NOT attempt the CDP operation.
+1. **Metro not running:**
+   - Console logs requested → fall back to `logs.sh` (OS-level capture). Note the fallback to the user.
+   - CDP required (eval, tree, network) → report: "Metro is not running. Start it with `npx react-native start`."
+2. **Metro running but targets empty:**
+   - Report: "Metro is running but no app is connected. Open your app in the simulator."
+   - Do NOT attempt the CDP operation — it will return nothing.
+3. **CDP operation returns empty after passing pre-flight:**
+   - Re-run `metro.sh targets`. If targets disappeared, the app crashed or was closed.
+   - Report what changed rather than returning bare empty results.
 
 ---
 
@@ -88,7 +110,7 @@ Before any CDP operation (`eval`, `tree`, `network`, `cdp-bridge.js console`):
 
 **When:** "show console logs", "JS errors", "what's in the console"
 
-Step 1: Run `${CLAUDE_SKILL_DIR}/../_shared/scripts/metro.sh status` to check Metro.
+Step 1: Run the Pre-Flight Check (or verify targets if pre-flight already ran this session).
 
 **Step 2a (Metro running):**
 
@@ -131,11 +153,12 @@ Dispatch Agent:
 
 **When:** "evaluate", "run this JS", "check state"
 
-Direct (no subagent -- output is small):
+Direct (no subagent — output is small):
 
-1. Run `${CLAUDE_SKILL_DIR}/../_shared/scripts/metro.sh status`
-2. If running: Run `${CLAUDE_SKILL_DIR}/../_shared/scripts/cdp-bridge.js eval "expression"`
+1. Verify pre-flight passed (Metro up + targets present)
+2. Run `${CLAUDE_SKILL_DIR}/../_shared/scripts/cdp-bridge.js eval "expression"`
 3. Return JSON result directly
+4. If empty/error: re-check `metro.sh targets` before reporting
 
 ### 3. Component Tree
 
@@ -219,6 +242,8 @@ Dispatch Agent:
 | Item | Size | In Main Context? |
 |------|------|------------------|
 | Metro status | ~20 chars | Yes |
+| CDP targets check | ~200-500 chars | Yes |
+| Simulator boot check | ~100 chars | Yes |
 | JS eval result | ~100-1000 chars | Yes |
 | Console log stream | ~1-50 KB | NEVER -- subagent only |
 | React component tree | ~10-100 KB | NEVER -- subagent only |
