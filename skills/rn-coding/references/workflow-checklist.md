@@ -5,7 +5,7 @@ Step-by-step checklist for writing React Native code. Referenced by rn-coding SK
 ## Before You Code
 
 - [ ] Identified all RN APIs and components needed
-- [ ] Searched docs for each API (grep `refs/react-native-docs/docs/`)
+- [ ] Searched docs for each API (grep `refs/react-native-docs/`)
 - [ ] Read relevant doc files for props, usage patterns, caveats
 - [ ] Noted platform differences (iOS vs Android behavior)
 - [ ] Checked if any APIs are deprecated or have migration notes

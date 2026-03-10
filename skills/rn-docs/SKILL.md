@@ -16,7 +16,7 @@ Search the official React Native documentation to answer questions accurately.
 
 All documentation lives at:
 ```
-${CLAUDE_SKILL_DIR}/../../refs/react-native-docs/docs/
+${CLAUDE_SKILL_DIR}/../../refs/react-native-docs/
 ```
 
 ## Workflow

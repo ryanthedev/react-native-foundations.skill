@@ -43,7 +43,7 @@ Look for `linking` config objects containing `prefixes` and `screens` mapping.
 
 ```
 Grep the docs directory for deep linking reference:
-  ${CLAUDE_SKILL_DIR}/../../refs/react-native-docs/docs/
+  ${CLAUDE_SKILL_DIR}/../../refs/react-native-docs/
   Search terms: "deep link", "linking", "URL scheme", "universal link"
 ```
 

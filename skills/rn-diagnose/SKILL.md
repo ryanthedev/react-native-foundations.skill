@@ -36,7 +36,7 @@ Step 0 uses `${CLAUDE_SKILL_DIR}/../_shared/scripts/metro.sh` for live Metro hea
 ## Docs Location
 
 ```
-${CLAUDE_SKILL_DIR}/../../refs/react-native-docs/docs/
+${CLAUDE_SKILL_DIR}/../../refs/react-native-docs/
 ```
 
 ---
@@ -131,7 +131,7 @@ Dispatch Agent:
 
     ERROR: [insert extracted error text]
 
-    1. Grep ${CLAUDE_SKILL_DIR}/../../refs/react-native-docs/docs/ for key
+    1. Grep ${CLAUDE_SKILL_DIR}/../../refs/react-native-docs/ for key
        terms from the error (component names, API names, error codes).
     2. Read any matching files (max 3 most relevant).
     3. Return:

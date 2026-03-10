@@ -95,7 +95,7 @@ Save the output as "computed styles" for use in Step 2.
 In the main context, grep the docs for layout properties related to the subagent's findings. If computed styles are available from Step 1.5, compare visual observations against actual flex/style values to confirm or refine the diagnosis.
 
 ```
-Docs path: ${CLAUDE_SKILL_DIR}/../../refs/react-native-docs/docs/
+Docs path: ${CLAUDE_SKILL_DIR}/../../refs/react-native-docs/
 
 Key files to check:
 - flexbox.md        — flex, flexDirection, justifyContent, alignItems, flexWrap

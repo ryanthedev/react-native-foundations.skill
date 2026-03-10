@@ -15,7 +15,7 @@ Lightweight coding guidance for React Native development. This skill does NOT ru
 ## Docs Location
 
 ```
-${CLAUDE_SKILL_DIR}/../../refs/react-native-docs/docs/
+${CLAUDE_SKILL_DIR}/../../refs/react-native-docs/
 ```
 
 Same docs corpus as rn-docs.

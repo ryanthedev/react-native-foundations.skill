@@ -135,7 +135,7 @@ Dispatch a subagent that:
 After the subagent returns its report, grep the React Native docs for relevant best practices. If CDP data is available from Step 1.5, add a DISCREPANCIES section comparing React-declared props against native a11y tree values.
 
 ```
-Grep "${CLAUDE_SKILL_DIR}/../../refs/react-native-docs/docs/accessibility.md" for key terms
+Grep "${CLAUDE_SKILL_DIR}/../../refs/react-native-docs/accessibility.md" for key terms
 from the audit (e.g., accessibilityLabel, accessibilityRole, accessibilityHint).
 ```
 
