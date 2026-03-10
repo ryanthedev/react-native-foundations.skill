@@ -2,15 +2,22 @@
 
 A Claude Code plugin for React Native development. Nine skills that search official docs, drive the iOS Simulator, diagnose errors, inspect layouts, audit accessibility, and debug the JS runtime.
 
-v0.4.0. MIT license.
-
 ## Install
 
+From the [RTD marketplace](https://github.com/ryanthedev/rtd-claude-inn):
+
 ```bash
-claude plugin add /path/to/react-native-foundations
+/plugin marketplace add ryanthedev/rtd-claude-inn
+/plugin install react-native-foundations@rtd
 ```
 
-The plugin bundles 234 official React Native doc files. No npm install, no build step.
+Or directly from source:
+
+```bash
+claude plugin add ryanthedev/react-native-foundations.skill
+```
+
+Bundles 218 official React Native doc files. No npm install, no build step.
 
 ## Skills
 
