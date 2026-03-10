@@ -17,6 +17,16 @@ Always process them in a subagent to protect main context.
 
 ---
 
+## Dependencies
+
+| Skill / Resource | Why |
+|------------------|-----|
+| `ios-sim` | `capture.sh view` captures red screen error text when the user says "there's an error on screen"; also used in optional post-fix verification |
+| `_shared` (metro.sh) | Step 0 — Metro health check, bundle validation, stack symbolication |
+| `refs/react-native-docs` | Step 3 — doc search for error context and fix guidance |
+
+---
+
 ## Error Pattern Database
 
 Read `${CLAUDE_SKILL_DIR}/references/error-patterns.md` for the full pattern catalog (24 patterns covering Metro, build, runtime, and dependency errors).

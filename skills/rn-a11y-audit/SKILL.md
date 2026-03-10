@@ -12,6 +12,15 @@ Audit the accessibility tree of a running React Native app in the iOS Simulator 
 
 ---
 
+## Dependencies
+
+| Skill / Resource | Why |
+|------------------|-----|
+| `ios-sim` | `ui.sh describe-all` captures the accessibility tree; `capture.sh view` used for optional screenshot context |
+| `_shared` (metro.sh, cdp-bridge.js) | Optional Step 1.5 — extracts React-declared a11y props via CDP when Metro is running |
+
+---
+
 ## Severity Levels
 
 | Level | Meaning | Examples |

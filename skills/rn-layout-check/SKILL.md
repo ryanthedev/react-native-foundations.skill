@@ -12,6 +12,15 @@ Verify visual layout against React Native's official Flexbox and style documenta
 
 ---
 
+## Dependencies
+
+| Skill / Resource | Why |
+|------------------|-----|
+| `ios-sim` | `capture.sh view` captures the simulator screenshot; `ui.sh describe-all` provides element positions from the accessibility tree |
+| `_shared` (metro.sh, cdp-bridge.js) | Optional Step 1.5 — reads computed style values from the React fiber tree via CDP when Metro is running |
+
+---
+
 ## Workflow
 
 ### Step 1 — Capture and Analyze (subagent)

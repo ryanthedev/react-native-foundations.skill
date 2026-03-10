@@ -17,6 +17,14 @@ Always dispatch a subagent for streaming and tree operations.
 
 ---
 
+## Dependencies
+
+| Skill / Resource | Why |
+|------------------|-----|
+| `_shared` (metro.sh, logs.sh, cdp-bridge.js, hmr.sh) | All debug operations — Metro health, log capture, JS eval, component tree, network monitor, HMR events |
+
+---
+
 ## Step 0: Environment Check
 
 Before any debug operation, run the environment check to understand the project setup:

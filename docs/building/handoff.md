@@ -47,7 +47,7 @@ Audit completed, findings documented below in "What's Left."
 
 ### Priority 2 — Nice to Have
 4. **Trim `refs/react-native-docs/`** — delete everything except `docs/` directory (yarn.lock, eslint config, etc. are unused)
-5. **Move `rn-docs/MANIFEST.md`** → `rn-docs/references/manifest.md` for consistency
+5. ~~**Move `rn-docs/MANIFEST.md`** → `rn-docs/references/manifest.md` for consistency~~ ✓ DONE
 6. **Update ios-sim/SKILL.md** — document the 5 new commands in the routing table and workflows
 
 ### Priority 3 — Future
