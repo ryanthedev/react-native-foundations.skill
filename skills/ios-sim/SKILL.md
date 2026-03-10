@@ -8,7 +8,7 @@ allowed-tools: Bash, Read, Agent
 
 **On load:** Read `../../.claude-plugin/plugin.json` from this skill's base directory. Display `ios-sim v{version}` before proceeding.
 
-Control the iOS Simulator through shell scripts wrapping `xcrun simctl` and `idb`.
+Control the iOS Simulator through shell scripts wrapping `xcrun simctl` and `AXe`.
 
 ```
 IMPORTANT: Never load screenshots or accessibility trees in the main context.
@@ -21,7 +21,7 @@ Always dispatch a subagent for visual/inspection tasks.
 
 - macOS with Xcode installed
 - A booted iOS simulator (`xcrun simctl list devices` to check)
-- Facebook IDB (`pip3 install fb-idb`) — required for `ui.sh` commands (tap, type, swipe, describe-all, describe-point). `capture.sh view` works without idb using a sips fallback for dimensions.
+- AXe (`brew install cameroncooke/axe/axe`) — required for `ui.sh` commands (tap, type, swipe, describe-all, describe-point). `capture.sh view` works without AXe.
 - See `${CLAUDE_SKILL_DIR}/references/troubleshooting.md` if anything is missing
 
 ## Scripts

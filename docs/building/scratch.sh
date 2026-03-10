@@ -1,46 +1,22 @@
 #!/bin/bash
-FILE="/Users/r/repos/react-native.skill/PLAN.md"
+# Compare pseudocode sections against PLAN.md implementation
 
-echo "=== Line count ==="
-wc -l "$FILE"
-
-echo ""
-echo "=== Check Fix 1: Port references ==="
-echo "--- Should NOT find 'localhost:8081' (should be \$PORT) ---"
-grep -n 'localhost:8081' "$FILE" || echo "(none found - GOOD)"
+echo "=== Phase 2e section in PLAN.md (lines 224-243) ==="
+sed -n '224,243p' /Users/r/repos/react-native.skill/PLAN.md
 
 echo ""
-echo "--- Should find '\$PORT' references ---"
-grep -n '\$PORT' "$FILE"
+echo "=== Smoke tests section - new entries (lines 270-284) ==="
+sed -n '270,284p' /Users/r/repos/react-native.skill/PLAN.md
 
 echo ""
-echo "=== Check Fix 2: tree mode caveat ==="
-grep -n 'tree.*mode.*caveat\|dev mode.*hook\|React DevTools hook not found' "$FILE"
+echo "=== Verify Phase 2e appears AFTER Phase 2d and BEFORE Smoke Tests ==="
+grep -n "Phase 2d\|Phase 2e\|Smoke Tests" /Users/r/repos/react-native.skill/PLAN.md
 
 echo ""
-echo "=== Check Fix 3: Node 22+ guard ==="
-grep -n 'process.version\|requires Node 22+, found' "$FILE"
+echo "=== Check for dead code / debug artifacts in PLAN.md ==="
+grep -n "TODO\|FIXME\|HACK\|XXX\|TEMP\|DEBUG" /Users/r/repos/react-native.skill/PLAN.md || echo "None found"
 
 echo ""
-echo "=== Check Fix 4: Smoke Tests section ==="
-grep -n 'Smoke Tests' "$FILE"
-
-echo ""
-echo "=== Check Fix 5: path resolution ==="
-grep -n 'plugin install dir' "$FILE"
-
-echo ""
-echo "=== Check Fix 6 NOT applied: should still show 234 ==="
-grep -n '234\|218' "$FILE"
-
-echo ""
-echo "=== Check Port resolution line in metro.sh section ==="
-grep -n 'Port resolution order' "$FILE"
-
-echo ""
-echo "=== Check markdown section separators (---) ==="
-grep -n '^---$' "$FILE"
-
-echo ""
-echo "=== Check section headers ==="
-grep -n '^##' "$FILE"
+echo "=== Verify no duplicate sections ==="
+echo "Phase 2e count: $(grep -c 'Phase 2e' /Users/r/repos/react-native.skill/PLAN.md)"
+echo "Smoke Tests count: $(grep -c '### Smoke Tests' /Users/r/repos/react-native.skill/PLAN.md)"

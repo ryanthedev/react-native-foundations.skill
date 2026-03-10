@@ -26,16 +26,16 @@ Audit the accessibility tree of a running React Native app in the iOS Simulator 
 
 ### Pre-check
 
-Before dispatching the subagent, verify idb is installed:
+Before dispatching the subagent, verify AXe is installed:
 
-Run: `command -v "${IOS_SIMULATOR_MCP_IDB_PATH:-idb}" >/dev/null 2>&1`
+Run: `command -v "${IOS_SIMULATOR_MCP_AXE_PATH:-axe}" >/dev/null 2>&1`
 
 If this fails, stop and tell the user:
-"rn-a11y-audit requires Facebook IDB to read the accessibility tree.
-Install with: `pip3 install fb-idb`
+"rn-a11y-audit requires AXe to read the accessibility tree.
+Install with: `brew install cameroncooke/axe/axe`
 Then re-run this skill."
 
-Do not dispatch the subagent if idb is missing — it will fail immediately.
+Do not dispatch the subagent if AXe is missing — it will fail immediately.
 
 ### Step 1 — Capture and audit the accessibility tree (subagent)
 
