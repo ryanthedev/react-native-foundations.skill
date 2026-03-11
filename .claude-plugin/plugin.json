@@ -1,7 +1,7 @@
 {
   "name": "react-native-foundations",
-  "version": "0.5.0",
-  "description": "React Native foundation skills — documentation search, diagnosis, debugging, coding agent, and development tooling",
+  "version": "0.5.1",
+  "description": "React Native foundation skills — documentation search, diagnosis, debugging, design-first coding, and development tooling",
   "author": {
     "name": "r"
   },
