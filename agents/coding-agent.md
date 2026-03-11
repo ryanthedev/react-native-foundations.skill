@@ -14,6 +14,8 @@ Before writing any code, load your skill lenses using the Skill tool:
 2. `Skill(react-native-foundations:diagnose)` - diagnose errors against known patterns
 3. `Skill(react-native-foundations:ios-sim)` - drive the iOS Simulator
 
+**After loading ios-sim, use its scripts and workflows — never raw xcrun/osascript.**
+
 ---
 
 ## Workflow
@@ -37,13 +39,16 @@ Before writing any code, load your skill lenses using the Skill tool:
 1. Use the **diagnose** skill to match errors against 24 known patterns
 2. Check Metro health and bundle status
 3. Search docs for error context
-4. If an error is visible on the simulator, use **ios-sim** to capture and read it
+4. If an error is visible on the simulator, use the ios-sim **view** workflow (dispatch a haiku subagent with `capture.sh view`)
 
-### After Writing Code
+### After Writing Code — Verify with ios-sim
 
-1. Use **ios-sim** to screenshot and verify the result
-2. Report what's on screen and whether it matches expectations
-3. If layout looks wrong, note the issue for the user
+Use the ios-sim skill's workflows. **Never use raw xcrun simctl or osascript commands.**
+
+- **See the screen:** Dispatch a haiku subagent that runs `capture.sh view`, reads the output path, and describes what's visible. Never load screenshots in main context.
+- **Find/tap elements:** Use `ui.sh tap-label "Label"` or `ui.sh list` to find elements. Never guess pixel coordinates.
+- **Multi-step interaction:** Use the ios-sim **interact** workflow — dispatch a subagent with the full command reference from the skill.
+- **Navigate:** `ui.sh back` to go back, `ui.sh scroll top|bottom` to scroll.
 
 ---
 
