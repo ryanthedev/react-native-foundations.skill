@@ -31,7 +31,7 @@ Bundles 218 official React Native doc files. No npm install, no build step.
 | `/react-native-foundations:a11y-audit` | Audit accessibility |
 | `/react-native-foundations:deeplink-test` | Test deep links in the simulator |
 | `/react-native-foundations:clean` | Intelligent environment reset |
-| `/react-native-foundations:coding` | Design-first coding with RN docs + code-foundations |
+| `/react-native-foundations:coding` | Coding guidance — consults docs, suggests verification |
 
 ## Skills
 
@@ -105,7 +105,7 @@ Walks the native accessibility tree and checks every element against a severity-
 
 ### coding
 
-Design-first React Native coding. Loads RN docs for API reference and code-foundations for pseudocode-driven design. Searches docs before writing, designs with pseudocode contracts, then implements. Also available as a coding agent for autonomous dispatch.
+Consults official React Native docs before writing code, follows documented patterns, and suggests verification after. Also available as a coding agent for autonomous dispatch.
 
 ```
 "Write a FlatList component for this data"

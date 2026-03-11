@@ -1,6 +1,6 @@
 ---
 name: coding
-description: React Native coding guidance with design-first workflow. Consults official docs before writing code, then dispatches code-foundations for pseudocode-driven design. Use when writing components, implementing features, building screens, fixing queries, or adding views. Triggers on "write a component", "implement this feature", "build this screen", "add a view", "React Native code", "fix this query", "use best practices".
+description: React Native coding guidance — consults official docs before writing code and suggests verification after. Use when writing components, implementing features, building screens, fixing queries, or adding views. Triggers on "write a component", "implement this feature", "build this screen", "add a view", "React Native code", "fix this query", "use best practices".
 allowed-tools: Read, Grep, Glob, Skill
 ---
 
@@ -8,20 +8,17 @@ allowed-tools: Read, Grep, Glob, Skill
 
 **On load:** Read `../../.claude-plugin/plugin.json` from this skill's base directory. Display `coding v{version}` before proceeding.
 
-React Native coding guidance that combines official docs with design-first development. This skill loads two lenses into your context — use them together.
+React Native coding guidance that ensures docs are consulted before writing code and verification is suggested after.
 
 ---
 
-## Step 1: Load Lenses
+## Step 1: Load Docs
 
-Load both skills immediately:
+Load the docs skill immediately:
 
 ```
 Skill(react-native-foundations:docs)
-Skill(code-foundations:code)
 ```
-
-The docs skill gives you the RN API reference. The code skill gives you pseudocode-first design workflow.
 
 ---
 
@@ -36,15 +33,12 @@ Before writing any code:
 
 ---
 
-## Step 3: Design with code-foundations
+## Step 3: Write Code
 
-Follow the code-foundations:code workflow:
-
-1. Write pseudocode with contracts
-2. Validate design with the user
-3. Implement from the validated pseudocode
-
-The RN docs you searched in Step 2 inform the design — use correct APIs, props, and patterns.
+1. Follow patterns from the docs, not from memory or guessing
+2. Use correct prop types and required props
+3. Note platform-specific behavior inline with `Platform.OS` checks where needed
+4. Follow New Architecture patterns if the project uses new arch (check for Fabric/Turbo Module config)
 
 ---
 
