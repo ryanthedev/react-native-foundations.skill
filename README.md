@@ -1,6 +1,6 @@
 # react-native-foundations
 
-A Claude Code plugin for React Native development. Eight skills and a coding agent that search official docs, drive the iOS Simulator, diagnose errors, inspect layouts, audit accessibility, and debug the JS runtime.
+A Claude Code plugin for React Native development. Nine skills and a coding agent that search official docs, drive the iOS Simulator, diagnose errors, inspect layouts, audit accessibility, and debug the JS runtime.
 
 ## Install
 
@@ -31,7 +31,7 @@ Bundles 218 official React Native doc files. No npm install, no build step.
 | `/react-native-foundations:a11y-audit` | Audit accessibility |
 | `/react-native-foundations:deeplink-test` | Test deep links in the simulator |
 | `/react-native-foundations:clean` | Intelligent environment reset |
-| `/react-native-foundations:coding` | Coding agent with docs, diagnosis, and simulator |
+| `/react-native-foundations:coding` | Design-first coding with RN docs + code-foundations |
 
 ## Skills
 
@@ -103,9 +103,9 @@ Walks the native accessibility tree and checks every element against a severity-
 "Are my labels correct for VoiceOver?"
 ```
 
-### coding (agent)
+### coding
 
-Dispatches a coding agent that loads the docs, diagnose, and ios-sim skills. Consults documentation before writing code, diagnoses errors when they occur, and verifies results on the simulator.
+Design-first React Native coding. Loads RN docs for API reference and code-foundations for pseudocode-driven design. Searches docs before writing, designs with pseudocode contracts, then implements. Also available as a coding agent for autonomous dispatch.
 
 ```
 "Write a FlatList component for this data"
